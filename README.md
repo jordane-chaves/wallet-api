@@ -81,7 +81,7 @@ $ npm run start:dev
 # Para executar os testes unitários
 $ npm run test
 
-# Para executar os testes E2D
+# Para executar os testes E2E (é importante que o banco de dados esteja executando)
 $ npm run test:e2e
 ```
 
