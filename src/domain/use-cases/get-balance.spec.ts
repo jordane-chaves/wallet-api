@@ -15,7 +15,7 @@ describe('Get Balance', () => {
     sut = new GetBalanceUseCase(inMemoryTransactionsRepository)
   })
 
-  it('should be able to get a balance', async () => {
+  it('should sum income transaction', async () => {
     inMemoryTransactionsRepository.items.push(
       makeTransaction({
         customerId: new UniqueEntityID('customer-1'),
@@ -24,13 +24,76 @@ describe('Get Balance', () => {
       }),
       makeTransaction({
         customerId: new UniqueEntityID('customer-1'),
+        priceInCents: 10000,
+        type: 'income',
+      }),
+    )
+
+    const result = await sut.execute({
+      customerId: 'customer-1',
+    })
+
+    expect(result.isRight()).toBe(true)
+    expect(result.value).toEqual({
+      balance: 15000,
+    })
+  })
+
+  it('should subtract the send transfer transaction', async () => {
+    inMemoryTransactionsRepository.items.push(
+      makeTransaction({
+        customerId: new UniqueEntityID('customer-1'),
+        priceInCents: 10000,
+        type: 'income',
+      }),
+      makeTransaction({
+        customerId: new UniqueEntityID('customer-1'),
         recipientId: new UniqueEntityID('customer-2'),
         priceInCents: 2000,
         type: 'transfer',
       }),
+    )
+
+    const result = await sut.execute({
+      customerId: 'customer-1',
+    })
+
+    expect(result.isRight()).toBe(true)
+    expect(result.value).toEqual({
+      balance: 8000,
+    })
+  })
+
+  it('should sum received transaction', async () => {
+    inMemoryTransactionsRepository.items.push(
       makeTransaction({
         customerId: new UniqueEntityID('customer-1'),
         priceInCents: 10000,
+        type: 'income',
+      }),
+      makeTransaction({
+        customerId: new UniqueEntityID('customer-2'),
+        recipientId: new UniqueEntityID('customer-1'),
+        priceInCents: 2000,
+        type: 'transfer',
+      }),
+    )
+
+    const result = await sut.execute({
+      customerId: 'customer-1',
+    })
+
+    expect(result.isRight()).toBe(true)
+    expect(result.value).toEqual({
+      balance: 12000,
+    })
+  })
+
+  it('should sum the reverse transaction to the sender', async () => {
+    inMemoryTransactionsRepository.items.push(
+      makeTransaction({
+        customerId: new UniqueEntityID('customer-1'),
+        priceInCents: 2000,
         type: 'income',
       }),
       makeTransaction({
@@ -47,11 +110,11 @@ describe('Get Balance', () => {
 
     expect(result.isRight()).toBe(true)
     expect(result.value).toEqual({
-      balance: 16000,
+      balance: 5000,
     })
   })
 
-  it('should sum received transference to the balance', async () => {
+  it('should not change the balance of the recipient of a reversed transfer', async () => {
     inMemoryTransactionsRepository.items.push(
       makeTransaction({
         customerId: new UniqueEntityID('customer-2'),
@@ -61,8 +124,8 @@ describe('Get Balance', () => {
       makeTransaction({
         customerId: new UniqueEntityID('customer-1'),
         recipientId: new UniqueEntityID('customer-2'),
-        priceInCents: 2000,
-        type: 'transfer',
+        priceInCents: 3000,
+        type: 'reverse',
       }),
     )
 
@@ -72,7 +135,7 @@ describe('Get Balance', () => {
 
     expect(result.isRight()).toBe(true)
     expect(result.value).toEqual({
-      balance: 12000,
+      balance: 10000,
     })
   })
 
@@ -85,20 +148,8 @@ describe('Get Balance', () => {
       }),
       makeTransaction({
         customerId: new UniqueEntityID('customer-1'),
-        recipientId: new UniqueEntityID('customer-2'),
-        priceInCents: 2000,
-        type: 'transfer',
-      }),
-      makeTransaction({
-        customerId: new UniqueEntityID('customer-1'),
         priceInCents: 10000,
         type: 'income',
-      }),
-      makeTransaction({
-        customerId: new UniqueEntityID('customer-1'),
-        recipientId: new UniqueEntityID('customer-2'),
-        priceInCents: 3000,
-        type: 'reverse',
       }),
     )
 
@@ -108,7 +159,7 @@ describe('Get Balance', () => {
 
     expect(result.isRight()).toBe(true)
     expect(result.value).toEqual({
-      balance: 11000,
+      balance: 10000,
     })
   })
 })

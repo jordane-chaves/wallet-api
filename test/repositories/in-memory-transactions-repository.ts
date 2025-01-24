@@ -5,25 +5,37 @@ export class InMemoryTransactionsRepository implements TransactionsRepository {
   public items: Transaction[] = []
 
   async calculateBalanceByCustomerId(customerId: string): Promise<number> {
-    const customerTransactions = this.items.filter((item) => {
+    const transactions = this.items.filter((item) => {
       return (
         item.customerId.toString() === customerId ||
         item.recipientId?.toString() === customerId
       )
     })
 
-    const balance = customerTransactions.reduce((result, transaction) => {
+    const balance = transactions.reduce((result, transaction) => {
+      const isRecipientCustomer =
+        transaction.recipientId?.toString() === customerId
+
       if (transaction.type === 'income') {
         return result + transaction.priceInCents
-      } else if (transaction.type === 'reverse') {
+      }
+
+      if (transaction.type === 'transfer') {
+        if (isRecipientCustomer) {
+          return result + transaction.priceInCents
+        } else {
+          return result - transaction.priceInCents
+        }
+      }
+
+      if (
+        transaction.type === 'reverse' &&
+        transaction.customerId.toString() === customerId
+      ) {
         return result + transaction.priceInCents
       }
 
-      if (transaction.recipientId?.toString() === customerId) {
-        return result + transaction.priceInCents
-      }
-
-      return result - transaction.priceInCents
+      return result
     }, 0)
 
     return balance
