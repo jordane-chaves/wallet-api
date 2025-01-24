@@ -1,3 +1,5 @@
+import { Injectable } from '@nestjs/common'
+
 import { Either, right } from '@/core/either'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 
@@ -18,6 +20,7 @@ type DepositUseCaseResponse = Either<
   }
 >
 
+@Injectable()
 export class DepositUseCase {
   constructor(private transactionsRepository: TransactionsRepository) {}
 

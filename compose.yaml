@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: bitnami/postgresql:17.2.0
+    container_name: wallet-pg
+    ports:
+      - ${DATABASE_PORT}:5432
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_DB}
+    volumes:
+      - ./data/pg:/bitnami/postgresql

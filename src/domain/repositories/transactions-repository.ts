@@ -1,8 +1,8 @@
 import { Transaction } from '../entities/transaction'
 
-export interface TransactionsRepository {
-  calculateBalanceByCustomerId(customerId: string): Promise<number>
-  findById(id: string): Promise<Transaction | null>
-  save(transaction: Transaction): Promise<void>
-  create(transaction: Transaction): Promise<void>
+export abstract class TransactionsRepository {
+  abstract calculateBalanceByCustomerId(customerId: string): Promise<number>
+  abstract findById(id: string): Promise<Transaction | null>
+  abstract save(transaction: Transaction): Promise<void>
+  abstract create(transaction: Transaction): Promise<void>
 }

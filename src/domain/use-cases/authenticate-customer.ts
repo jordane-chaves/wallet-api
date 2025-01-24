@@ -1,3 +1,5 @@
+import { Injectable } from '@nestjs/common'
+
 import { Either, left, right } from '@/core/either'
 
 import { Encrypter } from '../cryptography/encrypter'
@@ -17,6 +19,7 @@ type AuthenticateCustomerUseCaseResponse = Either<
   }
 >
 
+@Injectable()
 export class AuthenticateCustomerUseCase {
   constructor(
     private customersRepository: CustomersRepository,
@@ -35,7 +38,7 @@ export class AuthenticateCustomerUseCase {
       return left(new WrongCredentialsError())
     }
 
-    const isPasswordValid = await this.hashComparer.comparer(
+    const isPasswordValid = await this.hashComparer.compare(
       password,
       customer.password,
     )
